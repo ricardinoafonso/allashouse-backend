@@ -1,0 +1,98 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model users {
+  id        String     @id @default(uuid())
+  name      String
+  email     String
+  password  String
+  adress    String
+  contact   String
+  province  province[]
+  User      User
+  status    Boolean    @default(false)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @default(now())
+  token     token[]
+}
+
+model province {
+  id        String      @id @default(uuid())
+  user      users       @relation(fields: [usersId], references: [id])
+  municipio municipio[]
+  name      String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @default(now())
+  usersId   String
+  post      posts[]
+}
+
+model municipio {
+  id         String    @id @default(uuid())
+  name       String
+  province   province? @relation(fields: [provinceId], references: [id])
+  bairro     bairro[]
+  provinceId String?
+  post       posts[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now())
+}
+
+model bairro {
+  id          String     @id @default(uuid())
+  name        String
+  municipio   municipio? @relation(fields: [municipioId], references: [id])
+  municipioId String?
+  post        posts[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @default(now())
+}
+
+model posts {
+  id          String    @id @default(uuid())
+  name        String
+  province    province  @relation(fields: [provinceId], references: [id])
+  provinceId  String
+  municipio   municipio @relation(fields: [municipioId], references: [id])
+  municipioId String
+  bairro      bairro    @relation(fields: [bairroId], references: [id])
+  bairroId    String
+  status      String
+  thum        String
+  gallery     gallery[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now())
+}
+
+model gallery {
+  id        String   @id @default(uuid())
+  image     String
+  post      posts    @relation(fields: [postId], references: [id])
+  postId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
+
+model token {
+  id         String   @id @default(uuid())
+  token_type String
+  token      String
+  user       users    @relation(fields: [usersId], references: [id])
+  usersId    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+}
+
+enum User {
+  user
+  admin
+}

@@ -1,0 +1,37 @@
+{
+  "name": "allashouse",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsx watch src/shared/infra/http/App.ts",
+    "seed": "tsx prisma/seed/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fastify/autoload": "^5.7.1",
+    "@fastify/cors": "^8.4.0",
+    "@fastify/jwt": "^7.2.1",
+    "@prisma/client": "^5.3.1",
+    "@types/bcrypt": "^5.0.0",
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.3.1",
+    "fastify": "^4.23.2",
+    "fastify-autoload": "^3.13.0",
+    "fastify-plugin": "^4.5.1",
+    "jsonwebtoken": "^9.0.2",
+    "reflect-metadata": "^0.1.13",
+    "tsyringe": "^4.8.0",
+    "zod": "^3.22.3"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.3",
+    "prisma": "^5.3.1",
+    "tsconfig-paths": "^4.2.0",
+    "tsx": "^3.13.0",
+    "typescript": "^5.2.2"
+  }
+}
