@@ -22,7 +22,7 @@ export async function token(params: string) {
   });
 }
 
-export function verify_token(token: string) {
+export function verify_token(token: string) :any {
   return verify(token, `${KEY_JWT}`);
 }
 

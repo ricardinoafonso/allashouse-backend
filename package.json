@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "tsx watch src/shared/infra/http/App.ts",
+    "start": "tsx watch --inspect src/shared/infra/http/App.ts",
     "seed": "tsx prisma/seed/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

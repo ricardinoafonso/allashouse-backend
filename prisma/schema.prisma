@@ -87,7 +87,7 @@ model token {
   token_type String
   token      String
   user       users    @relation(fields: [usersId], references: [id])
-  usersId    String
+  usersId    String @unique
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now())
 }

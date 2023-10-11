@@ -1,9 +1,15 @@
 import { injectable } from "tsyringe";
 import { PrismaClient } from "@prisma/client";
 import { prisma } from "@shared/infra/database/prisma";
-import { ItokenService as ITokenService, TokenDto } from "../dto/dto";
+import {
+  ItokenService as ITokenService,
+  TokenDto,
+  TokenResponse,
+  TokenType,
+} from "../dto/dto";
 import { z } from "zod";
 import { BadRequest } from "@errors/Errors";
+import { token, token_refresh } from "@shared/util/util";
 
 @injectable()
 export class TokenService implements ITokenService {
@@ -16,14 +22,14 @@ export class TokenService implements ITokenService {
       const dataParsed = z.object({
         token_type: z.string(),
         token: z.string(),
-        userId: z.string(),
+        usersId: z.string(),
       });
-      const { token_type, token, userId } = dataParsed.parse(data);
+      const { token_type, token, usersId } = dataParsed.parse(data);
       const token_ = await this.TokenRepository.token.create({
         data: {
           token_type,
           token,
-          usersId: userId,
+          usersId: usersId,
         },
       });
       return token_;
@@ -31,10 +37,43 @@ export class TokenService implements ITokenService {
       throw new BadRequest(error.message, "something wrong !");
     }
   }
-  update(id: string, data: string): Promise<TokenDto> {
-    throw new Error("Method not implemented.");
+  async update(data: TokenDto): Promise<TokenResponse> {
+    try {
+      const token_ = await this.TokenRepository.token.findFirst({
+        where: { token: data.token },
+      });
+
+      if (!token_) {
+        throw new BadRequest(
+          "Invalid token, or token not found",
+          "please login now"
+        );
+      }
+      const newTokenRefresh = token_refresh(`${data.usersId}`);
+      const newToken = await token(`${data.usersId}`);
+      await this.TokenRepository.token.update({
+        data: {
+          token: newTokenRefresh,
+          token_type: TokenType.REFRESH_AUTH,
+        },
+        where: { usersId: `${data.usersId}` },
+      });
+      return { token: newToken, refresh: newTokenRefresh };
+    } catch (error: any) {
+      throw new BadRequest(error.message, "something wrong !");
+    }
   }
-  delete(id: string): Promise<boolean> {
-    throw new Error("Method not implemented.");
+  async delete(id: string): Promise<boolean> {
+    try {
+      const deleteToken = await this.TokenRepository.token.delete({
+        where: { id: id },
+      });
+      if (deleteToken) {
+        return true;
+      }
+      return false;
+    } catch (error: any) {
+      throw new BadRequest(error.message, "something wrong !");
+    }
   }
 }

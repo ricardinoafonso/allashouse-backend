@@ -1,4 +1,4 @@
-import { injectable } from "tsyringe";
+import { injectable, inject } from "tsyringe";
 import { PrismaClient } from "@prisma/client";
 import { prisma } from "@shared/infra/database/prisma";
 import {
@@ -11,6 +11,7 @@ import {
 import { z } from "zod";
 import { BadRequest, BaseError, NotAuthorized } from "@errors/Errors";
 import { UserServiceDto } from "../dto/dto";
+import {ItokenService as TokenService, TokenType } from "@modules/token/dto/dto";
 export interface IUserDto {
   id?: string;
   name: string;
@@ -55,7 +56,7 @@ export type LoginResponse = {
 @injectable()
 export class UserService implements UserServiceDto {
   private Users: PrismaClient;
-  constructor() {
+  constructor(@inject("Tokenservice") private tokenService: TokenService) {
     this.Users = prisma;
   }
 
@@ -81,7 +82,7 @@ export class UserService implements UserServiceDto {
             User: "user",
           },
         });
-        return user
+        return user;
       }
       throw new NotAuthorized(
         "email user already exists",
@@ -106,7 +107,7 @@ export class UserService implements UserServiceDto {
           email: parsedData.email,
           password: parsedData.password,
           status: true,
-          User: 'user',
+          User: "user",
         },
         where: {
           id: id,
@@ -157,6 +158,13 @@ export class UserService implements UserServiceDto {
         const token_ = await token(findUser.id);
         const refresh_token = token_refresh(findUser.id);
         const { id, password, ...user_data } = findUser;
+
+        await this.tokenService.create({
+          token: refresh_token,
+          token_type: TokenType.REFRESH_AUTH,
+          usersId: `${id}`,
+        });
+
         return { refresh_token: refresh_token, token: token_, user: user_data };
       }
       throw new NotAuthorized("email or password invalid", " something wrong!");

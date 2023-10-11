@@ -3,10 +3,13 @@ import fastify from "fastify";
 import { usersRoutes } from "@modules/users/routes/users.routes";
 import fastifyCors from "@fastify/cors";
 import { tokenRoute } from "@modules/token/routes/token.route";
+import jwt from "@shared/plugins/jwt";
+import '@shared/infra/container/index'
 
 const App = fastify({ logger: true });
 const Port = process.env.PORT || 4000;
 
+App.register(jwt)
 App.register(fastifyCors)
 App.register(usersRoutes);
 App.register(tokenRoute)

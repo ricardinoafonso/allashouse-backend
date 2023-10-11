@@ -8,6 +8,16 @@ export interface TokenDto {
 }
 export interface ItokenService {
   create(data: TokenDto): Promise<TokenDto>;
-  update(id: string, data: string): Promise<TokenDto>;
+  update(data: TokenDto): Promise<TokenResponse>;
   delete(id: string): Promise<boolean>;
+}
+export interface TokenResponse {
+  token: string;
+  refresh: string;
+}
+
+export enum TokenType {
+  REFRESH_AUTH = "REFRESH_AUTH",
+  VERIFICATION = "VERIFICATION",
+  TOKEN_AUTH = "TOKEN_AUTH",
 }
