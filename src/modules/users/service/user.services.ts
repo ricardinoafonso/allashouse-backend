@@ -11,56 +11,18 @@ import {
 } from "@shared/util/util";
 import { z } from "zod";
 import { BadRequest, BaseError, NotAuthorized } from "@errors/Errors";
-import { UserServiceDto } from "../dto/dto";
+import {
+  IUserDto,
+  IUserDtoCreate,
+  LoginResponse,
+  TokenAuth,
+  User,
+  UserServiceDto,
+} from "../dto/dto";
 import {
   ItokenService as TokenService,
   TokenType,
 } from "@modules/token/dto/dto";
-export interface IUserDto {
-  id?: string;
-  name: string;
-  email: string;
-  password: string;
-  adress: string;
-  contact: string;
-  User?: string;
-  status?: boolean;
-}
-
-export interface IUserDtoCreate {
-  name: string;
-  email: string;
-  password: string;
-  adress: string;
-  contact: string;
-}
-export interface User {
-  password: string;
-  email: string;
-}
-enum UserType {
-  admin = "admin",
-  user = "user",
-}
-
-export interface TokenAuth {
-  refresh?: string;
-  userid?: string;
-}
-
-export type LoginResponse = {
-  token: string;
-  refresh_token: string;
-  user: {
-    id?: string;
-    name: string;
-    email: string;
-    adress: string;
-    contact: string;
-    User: string;
-    status: boolean;
-  };
-};
 
 @injectable()
 export class UserService implements UserServiceDto {
@@ -142,32 +104,43 @@ export class UserService implements UserServiceDto {
       throw new BadRequest(error.message, "algo deu errado !");
     }
   }
-  async magicAuth(token_auth: TokenAuth) : Promise<any> {
+  async magicAuth(token_auth: TokenAuth): Promise<any> {
     try {
-      const findToken = await this.tokenService.find(token_auth.refresh);
-      if (!findToken) {
+      const parserData = z.object({
+        refresh: z.string(),
+      });
+      const { refresh } = parserData.parse(token_auth);
+      const { sub } = verify_token(refresh);
+
+      const findTokenRefresh = await this.tokenService.find(refresh);
+
+      if (!findTokenRefresh) {
         throw new NotAuthorized(
           "token not valid or invalid",
           "please check your details"
         );
       }
-        const { sub } = verify_token(findToken.token);
-        const user = await this.Users.users.findFirst({
-          where: { id: findToken.usersId },
-        });
-        const {id: tokenId} = findToken
-        const token_ = await token(`${user.id}`);
-        const refresh_token = token_refresh(user.id);
 
+      const user = await this.Users.users.findFirst({
+        where: { id: sub },
+      });
+
+      const { id: tokenId } = findTokenRefresh;
+      const token_ = await token(sub);
+      const refresh_token = token_refresh(sub);
+
+      const delete_token = await this.tokenService.delete(tokenId);
+
+      if (delete_token) {
         await this.tokenService.create({
           token: refresh_token,
           token_type: TokenType.REFRESH_AUTH,
           usersId: `${user.id}`,
         });
+      }
 
-      const { id,password ,...users } = user;
-      return {token: token_, refresh:refresh_token, ...users}
-
+      const { id, password, ...users } = user;
+      return { token: token_, refresh: refresh_token, ...users };
     } catch (error: any) {
       throw new BadRequest(error.message, "algo deu errado !");
     }
@@ -197,7 +170,7 @@ export class UserService implements UserServiceDto {
         const token_ = await token(findUser.id);
         const refresh_token = token_refresh(findUser.id);
         const { id, password, ...user_data } = findUser;
-        
+
         await this.tokenService.create({
           token: refresh_token,
           token_type: TokenType.REFRESH_AUTH,

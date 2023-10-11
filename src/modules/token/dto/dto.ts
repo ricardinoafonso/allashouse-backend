@@ -10,7 +10,7 @@ export interface ItokenService {
   create(data: TokenDto): Promise<TokenDto>;
   update(data: TokenDto): Promise<TokenResponse>;
   delete(id: string): Promise<boolean>;
-  find(id: string) : Promise<any>;
+  find(id: string) : Promise<TokenDto>;
 }
 export interface TokenResponse {
   token: string;
