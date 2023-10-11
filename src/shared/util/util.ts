@@ -16,7 +16,7 @@ export async function hashPassword(password: string): Promise<string> {
 
 export async function token(params: string) {
   return sign({}, `${KEY_JWT}`, {
-    expiresIn: "7days",
+    expiresIn: "24h",
     algorithm: "HS256",
     subject: params,
   });
@@ -28,7 +28,7 @@ export function verify_token(token: string) :any {
 
 export function token_refresh(params: string) {
   return sign({}, `${KEY_JWT}`, {
-    expiresIn: "30days",
+    expiresIn: "7days",
     algorithm: "HS256",
     subject: params,
   });
