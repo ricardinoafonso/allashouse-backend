@@ -7,11 +7,15 @@ import {
   token,
   token_refresh,
   userParserData,
+  verify_token,
 } from "@shared/util/util";
 import { z } from "zod";
 import { BadRequest, BaseError, NotAuthorized } from "@errors/Errors";
 import { UserServiceDto } from "../dto/dto";
-import {ItokenService as TokenService, TokenType } from "@modules/token/dto/dto";
+import {
+  ItokenService as TokenService,
+  TokenType,
+} from "@modules/token/dto/dto";
 export interface IUserDto {
   id?: string;
   name: string;
@@ -37,6 +41,11 @@ export interface User {
 enum UserType {
   admin = "admin",
   user = "user",
+}
+
+export interface TokenAuth {
+  refresh?: string;
+  userid?: string;
 }
 
 export type LoginResponse = {
@@ -133,6 +142,36 @@ export class UserService implements UserServiceDto {
       throw new BadRequest(error.message, "algo deu errado !");
     }
   }
+  async magicAuth(token_auth: TokenAuth) : Promise<any> {
+    try {
+      const findToken = await this.tokenService.find(token_auth.refresh);
+      if (!findToken) {
+        throw new NotAuthorized(
+          "token not valid or invalid",
+          "please check your details"
+        );
+      }
+        const { sub } = verify_token(findToken.token);
+        const user = await this.Users.users.findFirst({
+          where: { id: findToken.usersId },
+        });
+        const {id: tokenId} = findToken
+        const token_ = await token(`${user.id}`);
+        const refresh_token = token_refresh(user.id);
+
+        await this.tokenService.create({
+          token: refresh_token,
+          token_type: TokenType.REFRESH_AUTH,
+          usersId: `${user.id}`,
+        });
+
+      const { id,password ,...users } = user;
+      return {token: token_, refresh:refresh_token, ...users}
+
+    } catch (error: any) {
+      throw new BadRequest(error.message, "algo deu errado !");
+    }
+  }
   async login(user: User): Promise<LoginResponse> {
     try {
       const parseData = z.object({
@@ -158,13 +197,12 @@ export class UserService implements UserServiceDto {
         const token_ = await token(findUser.id);
         const refresh_token = token_refresh(findUser.id);
         const { id, password, ...user_data } = findUser;
-
+        
         await this.tokenService.create({
           token: refresh_token,
           token_type: TokenType.REFRESH_AUTH,
           usersId: `${id}`,
         });
-
         return { refresh_token: refresh_token, token: token_, user: user_data };
       }
       throw new NotAuthorized("email or password invalid", " something wrong!");

@@ -29,12 +29,14 @@ const JWT_FASTIFY_PLUGIN: FastifyPluginAsync = async (
           req.user = {
             id: user_id,
           };
-          return done();
+          done();
+        }else{
+          throw new NotAuthorized(
+            "user not authorized",
+            "login now , token invalid"
+          );
         }
-        throw new NotAuthorized(
-          "user not authorized",
-          "login now , token invalid"
-        );
+        
       } catch (error) {
         return reply.send(error);
       }

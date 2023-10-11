@@ -86,8 +86,8 @@ model token {
   id         String   @id @default(uuid())
   token_type String
   token      String
-  user       users    @relation(fields: [usersId], references: [id])
-  usersId    String @unique
+  user       users?    @relation(fields: [usersId], references: [id])
+  usersId    String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now())
 }

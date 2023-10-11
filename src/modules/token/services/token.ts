@@ -27,8 +27,8 @@ export class TokenService implements ITokenService {
       const { token_type, token, usersId } = dataParsed.parse(data);
       const token_ = await this.TokenRepository.token.create({
         data: {
-          token_type,
-          token,
+          token_type:token_type,
+          token:token,
           usersId: usersId,
         },
       });
@@ -56,12 +56,18 @@ export class TokenService implements ITokenService {
           token: newTokenRefresh,
           token_type: TokenType.REFRESH_AUTH,
         },
-        where: { usersId: `${data.usersId}` },
+        where: { id: `${token_.id}` },
       });
       return { token: newToken, refresh: newTokenRefresh };
     } catch (error: any) {
       throw new BadRequest(error.message, "something wrong !");
     }
+  }
+  async find(token: string) : Promise<TokenDto> {
+    const token_ = await this.TokenRepository.token.findFirst({
+      where: { token: token },
+    });
+    return token_
   }
   async delete(id: string): Promise<boolean> {
     try {
