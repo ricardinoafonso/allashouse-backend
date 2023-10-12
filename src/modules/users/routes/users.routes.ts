@@ -1,12 +1,12 @@
 import { FastifyInstance, FastifyReply } from "fastify";
-import { User, UserService, IUserDtoCreate } from "../service/user.services";
 import { container } from "tsyringe";
-import { IMagicAuth } from "../dto/dto";
+import { IMagicAuth, IUserDtoCreate } from "../dto/dto";
+import { UserService } from "../service/user.services";
 export async function usersRoutes(fastify: FastifyInstance) {
   fastify.route({
     method: "POST",
     url: "/auth",
-    handler: async (req, reply) => {
+    handler: async (req:any, reply:FastifyReply) => {
       const { email, password } = req.body;
       const UserServices = container.resolve(UserService);
       const resutl = await UserServices.login({
@@ -30,22 +30,6 @@ export async function usersRoutes(fastify: FastifyInstance) {
       return reply.send({ result });
     }
   );
-
-  /*fastify.route({ 
-    method: "POST",
-    url: "/magic/auth",
-    preValidation: [fastify?.authenticated],
-    handler: async (req: any, reply: FastifyReply) =>{
-      const { token } = req.body;
-      const userService = container.resolve(UserService);
-      const result = await userService.magicAuth({
-        refresh: token,
-        userid: req.user.id,
-      })
-      return reply.send({ result });
-    }
-});
-*/
 
   fastify.post<{ Body: IUserDtoCreate }>("/create", async (req, reply) => {
     const { email, adress, password, contact, name } = req.body;
