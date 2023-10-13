@@ -26,7 +26,7 @@ export async function usersRoutes(fastify: FastifyInstance) {
       const result = await userService.magicAuth({
         refresh: token
       });
-      return reply.send({ result });
+      return reply.send( result );
     }
   );
 
