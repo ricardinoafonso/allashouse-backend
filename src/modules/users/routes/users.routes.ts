@@ -22,7 +22,6 @@ export async function usersRoutes(fastify: FastifyInstance) {
     { preHandler: [fastify?.authenticated] },
     async (req: any, reply: FastifyReply) => {
       const { token } = req.body;
-      console.log(req.user.id)
       const userService = container.resolve(UserService);
       const result = await userService.magicAuth({
         refresh: token

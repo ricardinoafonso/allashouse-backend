@@ -49,6 +49,7 @@ export class UserService implements UserServiceDto {
             adress: user_parsedData.adress,
             email: user_parsedData.email,
             password: password,
+            photo: "",
             status: true,
             User: "user",
           },
@@ -140,7 +141,7 @@ export class UserService implements UserServiceDto {
       }
 
       const { id, password, ...users } = user;
-      return { token: token_, refresh: refresh_token, ...users };
+      return { token: token_, refresh_token: refresh_token, ...users };
     } catch (error: any) {
       throw new BadRequest(error.message, "algo deu errado !");
     }

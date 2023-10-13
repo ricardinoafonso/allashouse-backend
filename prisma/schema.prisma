@@ -17,7 +17,7 @@ model users {
   password  String
   adress    String
   contact   String
-  photo     String?
+  photo     String
   province  province[]
   User      User
   status    Boolean    @default(false)
