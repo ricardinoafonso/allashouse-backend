@@ -64,20 +64,21 @@ export class UserService implements UserServiceDto {
       throw new NotAuthorized(error.message, "");
     }
   }
-  async update(id_: string, data: User): Promise<boolean> {
+  async update(id_: string, data: IUserDto): Promise<boolean> {
     try {
       const parsedData = userParserData().parse(data);
       const id_parse = z.object({
         id: z.string(),
       });
       const { id } = id_parse.parse({ id: id_ });
+      const password = await hashPassword(parsedData.password);
       await this.Users.users.update({
         data: {
           name: parsedData.name,
           contact: parsedData.contact,
           adress: parsedData.adress,
           email: parsedData.email,
-          password: parsedData.password,
+          password: password,
           status: true,
           User: "user",
         },
